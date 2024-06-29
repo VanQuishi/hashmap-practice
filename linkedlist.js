@@ -19,7 +19,7 @@ class LinkedList{
     }
     else {
       // look for tail node
-      let iteratorNode = head;
+      let iteratorNode = this.head;
       while (iteratorNode.next != null) {
         iteratorNode = iteratorNode.next;
       }

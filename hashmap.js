@@ -1,10 +1,13 @@
 import {Node, LinkedList} from './linkedlist.js';
 
+const Load_Factor = 0.75;
+
 class HashMap {
   constructor(){
-    this.length = 0;
+    this.numberOfStoredKeys = 0;
     this.buckets = [];
-    for (let i = 0; i < this.buckets.length; i++) {
+    this.buckets_size = 16;
+    for (let i = 0; i < this.buckets_size; i++) {
       this.buckets[i] = new LinkedList();
     }
   }
@@ -13,19 +16,38 @@ class HashMap {
     let hashCode = 0;
       
     const primeNumber = 31;
-    for (let i = 0; i < key.length; i++) {
-      hashCode = primeNumber * hashCode + key.charCodeAt(i);
+    for (let i = 0; i < key.numberOfStoredKeys; i++) {
+      hashCode = (primeNumber * hashCode + key.charCodeAt(i)) % this.buckets_size;
     }
 
     return hashCode;
   }
 
   set(_key, _value) {
-    let index = hash(_key);
+    let index = this.hash(_key);
 
-    if (index < 0 || index >= this.buckets.length) {
+    if (index < 0 || index >= this.buckets.numberOfStoredKeys) {
       throw new Error("Trying to access index out of bound");
-    }    
+    }
+    
+    let growthPoint = Math.ceil(this.buckets_size * Load_Factor);
+    if (this.numberOfStoredKeys + 1 == growthPoint) {
+      let tempBucket = [];
+      for (let i = 0; i < this.buckets_size; i++) {
+        if (this.buckets[i].head != null) {
+          tempBucket[i] = this.buckets[i];
+        }
+        else {
+          tempBucket[i] = new LinkedList();
+        }
+      }
+      for (let i = this.buckets_size; i < this.buckets_size * 2; i++) {
+        tempBucket[i] = new LinkedList();
+      }
+
+      this.buckets_size *= 2;
+      this.buckets = tempBucket;
+    }
     
     if (this.buckets[index].head != null) {
       let iteratorNode = this.buckets[index].head;
@@ -42,15 +64,15 @@ class HashMap {
 
     //no collisions, add new Node to the end of list
     this.buckets[index].add(_key, _value);
-    this.length++;
+    this.numberOfStoredKeys++;
 
     return;
   }
 
   get(_key) {
-    let index = hash(_key);
+    let index = this.hash(_key);
 
-    if (index < 0 || index >= this.buckets.length) {
+    if (index < 0 || index >= this.buckets.numberOfStoredKeys) {
       throw new Error("Trying to access index out of bound");
     }  
 
@@ -70,9 +92,9 @@ class HashMap {
   }
 
   has(_key) {
-    let index = hash(_key);
+    let index = this.hash(_key);
 
-    if (index < 0 || index >= this.buckets.length) {
+    if (index < 0 || index >= this.buckets.numberOfStoredKeys) {
       throw new Error("Trying to access index out of bound");
     }  
 
@@ -92,9 +114,9 @@ class HashMap {
   }
 
   remove(_key) {
-    let index = hash(_key);
+    let index = this.hash(_key);
 
-    if (index < 0 || index >= this.buckets.length) {
+    if (index < 0 || index >= this.buckets.numberOfStoredKeys) {
       throw new Error("Trying to access index out of bound");
     }  
 
@@ -106,12 +128,12 @@ class HashMap {
         if (iteratorNode.key == _key) {
           if (iteratorNode == this.buckets[index].head) {
             this.buckets[index].head = this.buckets[index].head.next;
-            this.length--;
+            this.numberOfStoredKeys--;
             return true;
           }
           else {
             prevNode.next = iteratorNode.next;
-            this.length--;
+            this.numberOfStoredKeys--;
             return true;
           }
         }
@@ -125,22 +147,22 @@ class HashMap {
   }
 
   length() {
-    return this.length;
+    return this.numberOfStoredKeys;
   }
 
   clear() {
-    for (let i = 0; i < this.buckets.length; i++) {
+    for (let i = 0; i < this.buckets_size; i++) {
       if (this.buckets[i].head != null) {
         this.buckets[i].head = null;
       }
     }
 
-    this.length = 0;
+    this.numberOfStoredKeys = 0;
   }
 
   keys() {
     let arr = [];
-    for (let i = 0; i < this.buckets.length; i++) {
+    for (let i = 0; i < this.buckets_size; i++) {
       if (this.buckets[i].head != null) {
         let iteratorNode = this.buckets[i].head;
         while (iteratorNode != null) {
@@ -155,7 +177,7 @@ class HashMap {
 
   values() {
     let arr = [];
-    for (let i = 0; i < this.buckets.length; i++) {
+    for (let i = 0; i < this.buckets_size; i++) {
       if (this.buckets[i].head != null) {
         let iteratorNode = this.buckets[i].head;
         while (iteratorNode != null) {
@@ -170,7 +192,7 @@ class HashMap {
 
   entries() {
     let arr = [];
-    for (let i = 0; i < this.buckets.length; i++) {
+    for (let i = 0; i < this.buckets_size; i++) {
       if (this.buckets[i].head != null) {
         let iteratorNode = this.buckets[i].head;
         while (iteratorNode != null) {
@@ -183,3 +205,5 @@ class HashMap {
     return arr;
   }
 }
+
+export {HashMap};
